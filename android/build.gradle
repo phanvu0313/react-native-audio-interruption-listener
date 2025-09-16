@@ -1,0 +1,35 @@
+// android/build.gradle  (LIB)
+buildscript {
+  ext.kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : '1.6.10'
+  repositories { google(); mavenCentral() }
+  dependencies { classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+def safeExtGet(prop, fallback) {
+  return rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
+
+android {
+  // RN 0.66.x thường dùng 31; nếu app bạn khác thì đổi số ở đây
+  compileSdkVersion safeExtGet('compileSdkVersion', 31)
+
+  defaultConfig {
+    minSdkVersion safeExtGet('minSdkVersion', 21)
+    targetSdkVersion safeExtGet('targetSdkVersion', 31)
+    consumerProguardFiles "consumer-rules.pro"
+  }
+
+  // AGP 7.0.x chưa bắt buộc namespace -> KHÔNG cần dòng namespace
+  // buildFeatures
+  buildFeatures { buildConfig = false }
+}
+
+repositories { google(); mavenCentral() }
+
+dependencies {
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  implementation "com.facebook.react:react-native:+"
+}
