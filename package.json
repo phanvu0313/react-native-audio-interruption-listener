@@ -1,14 +1,29 @@
 {
   "name": "react-native-audio-interruption-listener",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "RN Old Architecture listener for audio focus/interruption (Android/iOS).",
   "license": "MIT",
   "repository": "https://github.com/<yourname>/react-native-audio-interruption-listener",
-  "keywords": ["react-native", "audio", "interruption", "audiofocus", "av audiosession"],
+  "keywords": [
+    "react-native",
+    "audio",
+    "interruption",
+    "audiofocus",
+    "av audiosession"
+  ],
   "main": "lib/commonjs/index.js",
   "types": "lib/commonjs/index.d.ts",
   "react-native": "src/index.ts",
-  "files": ["android", "ios", "src", "lib", "react-native.config.js", "*.podspec", "README.md", "LICENSE"],
+  "files": [
+    "android",
+    "ios",
+    "src",
+    "lib",
+    "react-native.config.js",
+    "*.podspec",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepublishOnly": "npm run build"
