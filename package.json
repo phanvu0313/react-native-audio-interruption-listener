@@ -1,6 +1,6 @@
 {
   "name": "react-native-audio-interruption-listener",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "RN Old Architecture listener for audio focus/interruption (Android/iOS).",
   "license": "MIT",
   "repository": "https://github.com/phanvu0313/react-native-audio-interruption-listener",
