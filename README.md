@@ -136,6 +136,14 @@ Nên gọi `start()` ngay trước khi phát/ghi và `stop()` ngay sau khi dừn
     android { compileSdkVersion 31; defaultConfig { targetSdkVersion 31; minSdkVersion 21 } }
     ```
 -   Lỗi Flipper trên RN 0.66.x: comment `use_flipper!`, chạy `pod deintegrate && pod install --repo-update`.
+-   iOS không autolink được (pod không xuất hiện trong `Podfile.lock`):
+    1. Chạy `npx react-native config | grep react-native-audio-interruption-listener -n` để chắc chắn CLI đã đọc được `react-native.config.js`.
+    2. Nếu vẫn không có, thêm thủ công vào `ios/Podfile` của app:
+       ```ruby
+       pod 'react-native-audio-interruption-listener', :path => '../node_modules/react-native-audio-interruption-listener'
+       ```
+       rồi `pod install`.
+    3. Sau khi cài pod, rebuild app (không dùng `expo go`). Nếu Metro báo `Native module not found`, xoá DerivedData + cache, chạy lại `npx pod-install`.
 
 ---
 
