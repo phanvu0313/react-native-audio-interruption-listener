@@ -11,7 +11,8 @@ Pod::Spec.new do |s|
   s.homepage     = package['repository']
   s.authors      = { 'Pham Vu' => 'you@example.com' }
   s.platforms    = { :ios => '11.0' }
-  s.source       = { :path => '.' }
+  s.source       = { :git => 'https://github.com/phanvu0313/react-native-audio-interruption-listener.git',
+                     :tag => s.version }
   s.source_files = 'ios/**/*.{h,m,mm}'
   s.requires_arc = true
   s.frameworks   = 'AVFoundation'
