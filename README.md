@@ -29,12 +29,13 @@ cd ios && pod install && cd ..
 ## API chính
 
 ```ts
-import { start, stop, addListener } from "react-native-audio-interruption-listener"
+import { start, stop, addListener, isBusy } from "react-native-audio-interruption-listener"
 ```
 
 -   `start(mode: 'record' | 'play')`: Bắt đầu lắng nghe và xin audio focus/session theo chế độ.
 -   `stop()`: Dừng lắng nghe và trả audio focus/session lại hệ thống.
 -   `addListener(cb)`: Nhận callback `{ platform: 'android' | 'ios', state }` mỗi khi có sự kiện.
+-   `isBusy(): Promise<boolean>`: Kiểm tra nhanh xem thiết bị đang bận (cuộc gọi, VoIP, audio ưu tiên khác) để quyết định có nên ghi âm/phát ngay hay không.
 
 Giá trị `state`:
 
@@ -50,7 +51,7 @@ Gợi ý: xem `loss/loss_transient/duck/began` là pause, `gain/ended` là resum
 ```tsx
 import React, { useEffect } from "react"
 import { Button, SafeAreaView } from "react-native"
-import { start, stop, addListener } from "react-native-audio-interruption-listener"
+import { start, stop, addListener, isBusy } from "react-native-audio-interruption-listener"
 import AudioRecorderPlayer from "react-native-audio-recorder-player"
 
 const arp = new AudioRecorderPlayer()
@@ -79,8 +80,24 @@ export default function App() {
 
     return (
         <SafeAreaView style={{ padding: 20 }}>
-            <Button title="Start (play)" onPress={() => start("play")} />
-            <Button title="Start (record)" onPress={() => start("record")} />
+            <Button
+                title="Start (play)"
+                onPress={async () => {
+                    if (await isBusy()) {
+                        return
+                    }
+                    start("play")
+                }}
+            />
+            <Button
+                title="Start (record)"
+                onPress={async () => {
+                    if (await isBusy()) {
+                        return
+                    }
+                    start("record")
+                }}
+            />
             <Button title="Stop" onPress={() => stop()} />
         </SafeAreaView>
     )
@@ -91,16 +108,20 @@ Công thức ngắn:
 
 ```ts
 // Ghi âm
-await Promise.all([start("record"), arp.startRecorder()])
-// ...
-await arp.stopRecorder()
-stop()
+if (!(await isBusy())) {
+    await Promise.all([start("record"), arp.startRecorder()])
+    // ...
+    await arp.stopRecorder()
+    stop()
+}
 
 // Phát lại
-await Promise.all([start("play"), arp.startPlayer(path)])
-// ...
-await arp.stopPlayer()
-stop()
+if (!(await isBusy())) {
+    await Promise.all([start("play"), arp.startPlayer(path)])
+    // ...
+    await arp.stopPlayer()
+    stop()
+}
 ```
 
 Nên gọi `start()` ngay trước khi phát/ghi và `stop()` ngay sau khi dừng để không giữ audio focus quá lâu.

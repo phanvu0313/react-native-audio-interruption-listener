@@ -15,6 +15,6 @@ Pod::Spec.new do |s|
                      :tag => s.version }
   s.source_files = 'ios/**/*.{h,m,mm}'
   s.requires_arc = true
-  s.frameworks   = 'AVFoundation'
+  s.frameworks   = ['AVFoundation', 'CallKit']
   s.dependency   'React-Core'
 end

@@ -23,3 +23,13 @@ export function addListener(cb: (e: Event)=>void) {
   const sub = emitter.addListener('audioInterruption', cb);
   return () => sub.remove();
 }
+
+export function isBusy(): Promise<boolean> {
+  if (typeof RNAudioInterruption.isBusy !== 'function') {
+    throw new Error(
+      'react-native-audio-interruption-listener: isBusy() không khả dụng. ' +
+      'Hãy đảm bảo native code đã được build lại sau khi nâng cấp thư viện.'
+    );
+  }
+  return RNAudioInterruption.isBusy();
+}

@@ -1,15 +1,44 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 #import <AVFoundation/AVFoundation.h>
+#import <CallKit/CallKit.h>
 
-@interface RNAudioInterruption : RCTEventEmitter <RCTBridgeModule>
+@interface RNAudioInterruption : RCTEventEmitter <RCTBridgeModule, CXCallObserverDelegate>
 @property(nonatomic, assign) BOOL observing;
+@property(nonatomic, strong) CXCallObserver *callObserver;
+@property(nonatomic, assign) BOOL hasActiveCall;
 @end
 
 @implementation RNAudioInterruption
 RCT_EXPORT_MODULE();
 - (NSArray<NSString *> *)supportedEvents { return @[@"audioInterruption"]; }
 - (void)dealloc { if (_observing) [self removeNotif]; }
+
+- (instancetype)init
+{
+  if (self = [super init]) {
+    if (@available(iOS 10.0, *)) {
+      _callObserver = [CXCallObserver new];
+      [_callObserver setDelegate:self queue:nil];
+      [self updateActiveCall];
+    }
+  }
+  return self;
+}
+
+- (void)updateActiveCall
+{
+  if (@available(iOS 10.0, *)) {
+    BOOL active = NO;
+    for (CXCall *call in self.callObserver.calls) {
+      if (!call.hasEnded) {
+        active = YES;
+        break;
+      }
+    }
+    self.hasActiveCall = active;
+  }
+}
 
 RCT_EXPORT_METHOD(start:(NSString *)mode)
 {
@@ -46,6 +75,12 @@ RCT_EXPORT_METHOD(stop)
   });
 }
 
+- (void)callObserver:(CXCallObserver *)callObserver callChanged:(CXCall *)call
+  API_AVAILABLE(ios(10.0))
+{
+  [self updateActiveCall];
+}
+
 - (void)removeNotif {
   [[NSNotificationCenter defaultCenter] removeObserver:self
     name:AVAudioSessionInterruptionNotification
@@ -59,5 +94,24 @@ RCT_EXPORT_METHOD(stop)
   NSString *state = (t == AVAudioSessionInterruptionTypeBegan) ? @"began" : @"ended";
   [self sendEventWithName:@"audioInterruption"
                      body:@{ @"platform": @"ios", @"state": state }];
+}
+
+RCT_REMAP_METHOD(isBusy,
+                 isBusyWithResolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    BOOL busy = self.hasActiveCall;
+    if (!busy) {
+      busy = session.isOtherAudioPlaying;
+    }
+    if (!busy) {
+      if (@available(iOS 10.0, *)) {
+        busy = session.secondaryAudioShouldDuck;
+      }
+    }
+    resolve(@(busy));
+  });
 }
 @end

@@ -8,3 +8,4 @@ export type Event = {
 export declare function start(mode: Mode): void;
 export declare function stop(): void;
 export declare function addListener(cb: (e: Event) => void): () => void;
+export declare function isBusy(): Promise<boolean>;

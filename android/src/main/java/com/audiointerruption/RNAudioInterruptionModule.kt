@@ -1,9 +1,11 @@
 package com.audiointerruption
 
+import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
+import android.telecom.TelecomManager
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 
@@ -28,7 +30,7 @@ class RNAudioInterruptionModule(private val reactCtx: ReactApplicationContext)
 
   @ReactMethod
   fun start(mode: String) {
-    audioManager = reactCtx.getSystemService(AudioManager::class.java)
+    audioManager = (reactCtx.getSystemService(Context.AUDIO_SERVICE) as? AudioManager)
 
     val usage = if (mode == "record") AudioAttributes.USAGE_VOICE_COMMUNICATION
                 else AudioAttributes.USAGE_MEDIA
@@ -63,6 +65,33 @@ class RNAudioInterruptionModule(private val reactCtx: ReactApplicationContext)
       }
     }
     focusRequest = null
+  }
+
+  @ReactMethod
+  fun isBusy(promise: Promise) {
+    val am = (reactCtx.getSystemService(Context.AUDIO_SERVICE) as? AudioManager)
+    if (am == null) {
+      promise.reject("unavailable", "AudioManager unavailable")
+      return
+    }
+
+    val mode = am.mode
+    var busy = mode == AudioManager.MODE_IN_CALL ||
+      mode == AudioManager.MODE_IN_COMMUNICATION ||
+      mode == AudioManager.MODE_RINGTONE
+
+    if (!busy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      val telecom = reactCtx.getSystemService(TelecomManager::class.java)
+      if (telecom != null) {
+        try {
+          busy = telecom.isInCall
+        } catch (_: SecurityException) {
+          // No permission, ignore and fallback to audio mode
+        }
+      }
+    }
+
+    promise.resolve(busy)
   }
 
   private fun emit(platform: String, state: String) {
