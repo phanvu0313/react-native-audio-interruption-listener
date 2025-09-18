@@ -106,11 +106,6 @@ RCT_REMAP_METHOD(isBusy,
     if (!busy) {
       busy = session.isOtherAudioPlaying;
     }
-    if (!busy) {
-      if (@available(iOS 10.0, *)) {
-        busy = session.secondaryAudioShouldDuck;
-      }
-    }
     resolve(@(busy));
   });
 }
