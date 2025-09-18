@@ -49,14 +49,14 @@ Gợi ý: xem `loss/loss_transient/duck/began` là pause, `gain/ended` là resum
 ## Ví dụ tối giản với react-native-audio-recorder-player
 
 ```tsx
-import React, { useEffect } from "react"
+import React, { useEffect, useMemo } from "react"
 import { Button, SafeAreaView } from "react-native"
 import { start, stop, addListener, isBusy } from "react-native-audio-interruption-listener"
 import AudioRecorderPlayer from "react-native-audio-recorder-player"
 
-const arp = new AudioRecorderPlayer()
-
 export default function App() {
+    const arp = useMemo(() => new AudioRecorderPlayer(), [])
+
     useEffect(() => {
         const unsubscribe = addListener(({ platform, state }) => {
             const pause = () => {
@@ -83,19 +83,17 @@ export default function App() {
             <Button
                 title="Start (play)"
                 onPress={async () => {
-                    if (await isBusy()) {
-                        return
-                    }
+                    if (await isBusy()) return
                     start("play")
+                    await arp.startPlayer("path/to/file.mp3")
                 }}
             />
             <Button
                 title="Start (record)"
                 onPress={async () => {
-                    if (await isBusy()) {
-                        return
-                    }
+                    if (await isBusy()) return
                     start("record")
+                    await arp.startRecorder()
                 }}
             />
             <Button title="Stop" onPress={() => stop()} />
@@ -109,7 +107,8 @@ Công thức ngắn:
 ```ts
 // Ghi âm
 if (!(await isBusy())) {
-    await Promise.all([start("record"), arp.startRecorder()])
+    start("record")
+    await arp.startRecorder()
     // ...
     await arp.stopRecorder()
     stop()
@@ -117,7 +116,8 @@ if (!(await isBusy())) {
 
 // Phát lại
 if (!(await isBusy())) {
-    await Promise.all([start("play"), arp.startPlayer(path)])
+    start("play")
+    await arp.startPlayer(path)
     // ...
     await arp.stopPlayer()
     stop()

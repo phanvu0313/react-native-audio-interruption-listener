@@ -12,7 +12,17 @@
 @implementation RNAudioInterruption
 RCT_EXPORT_MODULE();
 - (NSArray<NSString *> *)supportedEvents { return @[@"audioInterruption"]; }
-- (void)dealloc { if (_observing) [self removeNotif]; }
+- (void)dealloc {
+  if (_observing) [self removeNotif];
+  if (@available(iOS 10.0, *)) {
+    [_callObserver setDelegate:nil queue:nil];
+  }
+}
+
++ (BOOL)requiresMainQueueSetup
+{
+  return YES;
+}
 
 - (instancetype)init
 {
